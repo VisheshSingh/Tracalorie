@@ -24,18 +24,43 @@ const ItemCtrl = (function() {
   return {
     logData: function() {
       return data;
+    },
+    getItems: function() {
+      return data.items;
     }
   };
 })();
 
 // UICtrl Controller
-const UICtrl = (function() {})();
+const UICtrl = (function() {
+  // Public method
+  return {
+    populateItems: function(items) {
+      let html = "";
+
+      items.forEach(item => {
+        html += `<li class="collection-item" id="${item.id}">
+                <strong>${item.name}: </strong> <em>${
+          item.calories
+        } Calories</em>
+                <a href="#" class="secondary-content"><i class="edit-item fa fa-pencil"></i></a>
+              </li>`;
+      });
+
+      document.querySelector("#item-list").innerHTML = html;
+    }
+  };
+})();
 
 // App Controller
 const App = (function(ItemCtrl, UICtrl) {
   return {
     init: function() {
-      console.log("Initialize App...");
+      // Fetch items from data structure
+      const items = ItemCtrl.getItems();
+
+      //Populate items
+      UICtrl.populateItems(items);
     }
   };
 })(ItemCtrl, UICtrl);
