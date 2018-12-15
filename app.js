@@ -323,6 +323,7 @@ const App = (function(ItemCtrl, UICtrl) {
     // Get total calories
     const totalCalories = ItemCtrl.getTotalCalories();
     UICtrl.showTotalCalories(totalCalories);
+    UICtrl.clearEditState();
     UICtrl.hideList();
     UICtrl.removeItems();
   }
