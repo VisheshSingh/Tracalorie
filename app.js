@@ -25,8 +25,18 @@ const ItemCtrl = (function() {
     logData: function() {
       return data;
     },
+
     getItems: function() {
       return data.items;
+    },
+    getItemById: function(id) {
+      let found = null;
+      data.items.forEach(item => {
+        if (item.id === id) {
+          found = item;
+        }
+      });
+      return found;
     },
     addItem: function(name, calories) {
       let Id;
@@ -44,6 +54,12 @@ const ItemCtrl = (function() {
       data.items.push(newItem);
       return newItem;
     },
+    setCurrentItem: function(item) {
+      data.currentItem = item;
+    },
+    getCurrentItem: function() {
+      return data.currentItem;
+    },
     getTotalCalories: function() {
       let total = 0;
       data.items.forEach(item => (total += item.calories));
@@ -59,6 +75,9 @@ const UICtrl = (function() {
   const UISelectors = {
     itemList: "#item-list",
     addBtn: ".add-btn",
+    updateBtn: ".update-btn",
+    deleteBtn: ".delete-btn",
+    backBtn: ".back-btn",
     itemName: "#item-name",
     itemCalories: "#item-calories",
     totalCalories: ".total-calories"
@@ -84,7 +103,7 @@ const UICtrl = (function() {
       // Create element
       const li = document.createElement("li");
       li.className = "collection-item";
-      li.id = `${item.id}`;
+      li.id = `item-${item.id}`;
       li.innerHTML = `<strong>${item.name}: </strong> <em>${
         item.calories
       } Calories</em>
@@ -112,6 +131,28 @@ const UICtrl = (function() {
     },
     showTotalCalories: function(calories) {
       document.querySelector(UISelectors.totalCalories).textContent = calories;
+    },
+    clearEditState: function() {
+      UICtrl.clearFields();
+      document.querySelector(UISelectors.addBtn).style.display = "inline";
+      document.querySelector(UISelectors.updateBtn).style.display = "none";
+      document.querySelector(UISelectors.deleteBtn).style.display = "none";
+      document.querySelector(UISelectors.backBtn).style.display = "none";
+    },
+    showEditState: function() {
+      document.querySelector(UISelectors.addBtn).style.display = "none";
+      document.querySelector(UISelectors.updateBtn).style.display = "inline";
+      document.querySelector(UISelectors.deleteBtn).style.display = "inline";
+      document.querySelector(UISelectors.backBtn).style.display = "inline";
+    },
+    addItemToForm: function() {
+      document.querySelector(
+        UISelectors.itemName
+      ).value = ItemCtrl.getCurrentItem().name;
+      document.querySelector(
+        UISelectors.itemCalories
+      ).value = ItemCtrl.getCurrentItem().calories;
+      UICtrl.showEditState();
     }
   };
 })();
@@ -122,10 +163,14 @@ const App = (function(ItemCtrl, UICtrl) {
   const loadEventListeners = function() {
     const UIselectors = UICtrl.getSelectors();
 
-    // Add item list
+    // Add item
     document
       .querySelector(UIselectors.addBtn)
       .addEventListener("click", itemAddSubmit);
+    // Update item
+    document
+      .querySelector(UIselectors.itemList)
+      .addEventListener("click", itemUpdateSubmit);
   };
   // Add item submit
   function itemAddSubmit(e) {
@@ -147,9 +192,27 @@ const App = (function(ItemCtrl, UICtrl) {
 
     e.preventDefault();
   }
+  //Update item submit
+  function itemUpdateSubmit(e) {
+    e.preventDefault();
+
+    if (e.target.classList.contains("edit-item")) {
+      const listId = e.target.parentElement.parentElement.id;
+      const listArr = listId.split("-");
+      const id = Number(listArr[1]);
+      // Get item
+      const ItemToEdit = ItemCtrl.getItemById(id);
+      // Set current item
+      ItemCtrl.setCurrentItem(ItemToEdit);
+
+      UICtrl.addItemToForm();
+    }
+  }
 
   return {
     init: function() {
+      //Set init state
+      UICtrl.clearEditState();
       // Fetch items from data structure
       const items = ItemCtrl.getItems();
 
