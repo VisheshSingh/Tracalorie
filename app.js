@@ -12,9 +12,9 @@ const ItemCtrl = (function() {
   // Data Structure/ State
   const data = {
     items: [
-      { id: 1, name: "Steak Dinner", calories: 1200 },
-      { id: 2, name: "Cookie", calories: 400 },
-      { id: 3, name: "Eggs", calories: 300 }
+      // { id: 1, name: "Steak Dinner", calories: 1200 },
+      // { id: 2, name: "Cookie", calories: 400 },
+      // { id: 3, name: "Eggs", calories: 300 }
     ],
     currentItem: null,
     totalCalories: 0
@@ -43,6 +43,12 @@ const ItemCtrl = (function() {
 
       data.items.push(newItem);
       return newItem;
+    },
+    getTotalCalories: function() {
+      let total = 0;
+      data.items.forEach(item => (total += item.calories));
+      data.totalCalories = total;
+      return data.totalCalories;
     }
   };
 })();
@@ -54,7 +60,8 @@ const UICtrl = (function() {
     itemList: "#item-list",
     addBtn: ".add-btn",
     itemName: "#item-name",
-    itemCalories: "#item-calories"
+    itemCalories: "#item-calories",
+    totalCalories: ".total-calories"
   };
   // Public method
   return {
@@ -73,6 +80,7 @@ const UICtrl = (function() {
       document.querySelector(UISelectors.itemList).innerHTML = html;
     },
     addItemList: function(item) {
+      document.querySelector(UISelectors.itemList).style.display = "block";
       // Create element
       const li = document.createElement("li");
       li.className = "collection-item";
@@ -96,7 +104,14 @@ const UICtrl = (function() {
       return UISelectors;
     },
     clearFields: function() {
-      document.forms[0].reset();
+      document.querySelector(UISelectors.itemName).value = "";
+      document.querySelector(UISelectors.itemCalories).value = "";
+    },
+    hideList: function() {
+      document.querySelector(UISelectors.itemList).style.display = "none";
+    },
+    showTotalCalories: function(calories) {
+      document.querySelector(UISelectors.totalCalories).textContent = calories;
     }
   };
 })();
@@ -122,6 +137,10 @@ const App = (function(ItemCtrl, UICtrl) {
       // Add item to list
       UICtrl.addItemList(newItem);
 
+      // Get total calories
+      const totalCalories = ItemCtrl.getTotalCalories();
+      UICtrl.showTotalCalories(totalCalories);
+
       // clear fields
       UICtrl.clearFields();
     }
@@ -134,8 +153,15 @@ const App = (function(ItemCtrl, UICtrl) {
       // Fetch items from data structure
       const items = ItemCtrl.getItems();
 
-      //Populate items
-      UICtrl.populateItems(items);
+      if (items.length === 0) {
+        UICtrl.hideList();
+      } else {
+        //Populate items
+        UICtrl.populateItems(items);
+      }
+      // Get total calories
+      const totalCalories = ItemCtrl.getTotalCalories();
+      UICtrl.showTotalCalories(totalCalories);
 
       // Load event listeners
       loadEventListeners();
